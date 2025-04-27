@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 
-from app.api import users, documents
+from app.api import users, documents, ocr
 from app.config import get_settings
 
 settings = get_settings()
@@ -27,6 +27,7 @@ app.add_middleware(
 # Include routers
 app.include_router(users.router, prefix=settings.API_V1_STR)
 app.include_router(documents.router, prefix=settings.API_V1_STR)
+app.include_router(ocr.router, prefix=settings.API_V1_STR)
 
 # Custom OpenAPI and Swagger UI with security scheme
 @app.get("/docs", include_in_schema=False)

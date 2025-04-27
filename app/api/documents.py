@@ -8,6 +8,7 @@ from app.database import get_db
 from app.models import User, Document
 from app.schemas import Document as DocumentSchema, DocumentCreate, DocumentUpdate
 from app.utils.cloudinary import upload_image
+from app.utils.document import validate_document_data
 
 router = APIRouter()
 

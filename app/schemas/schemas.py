@@ -44,17 +44,23 @@ class TokenPayload(BaseModel):
 class Page(BaseModel):
     image_url: str
     text: str
+    
+    class Config:
+        from_attributes = True
+        json_encoders = {
+            # Add any custom encoders if needed
+        }
 
 class DocumentBase(BaseModel):
     title: Optional[str] = None
-    data: Dict[str, List[Page]] = {"pages": []}
+    data: Dict[str, Any] = {"pages": []}  # Using Dict[str, Any] instead of Dict[str, List[Page]]
 
 class DocumentCreate(DocumentBase):
     pass
 
 class DocumentUpdate(BaseModel):
     title: Optional[str] = None
-    data: Optional[Dict[str, List[Page]]] = None
+    data: Optional[Dict[str, Any]] = None  # Using Dict[str, Any] to store the pages
 
 class DocumentInDB(DocumentBase):
     id: UUID4
