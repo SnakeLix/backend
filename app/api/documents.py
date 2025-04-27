@@ -9,6 +9,7 @@ from app.models import User, Document
 from app.schemas import Document as DocumentSchema, DocumentCreate, DocumentUpdate
 from app.utils.cloudinary import upload_image
 from app.utils.document import validate_document_data
+from app.utils.websocket import manager
 
 router = APIRouter()
 
@@ -29,7 +30,7 @@ def read_documents(
     return documents
 
 @router.post("/documents", response_model=DocumentSchema, tags=["documents"])
-def create_document(
+async def create_document(
     *,
     request: Request,
     db: Session = Depends(get_db),
@@ -47,6 +48,23 @@ def create_document(
     db.add(document)
     db.commit()
     db.refresh(document)
+    
+    # Notify the user about the new document with full data
+    await manager.send_document_update(
+        str(current_user.id),
+        {
+            "type": "document_created",
+            "data": {
+                "id": str(document.id),
+                "title": document.title,
+                "data": document.data,
+                "created_at": document.created_at.isoformat(),
+                "updated_at": document.updated_at.isoformat(),
+                "user_id": str(document.user_id)
+            }
+        }
+    )
+    
     return document
 
 @router.post("/upload-image", tags=["documents"])
@@ -91,7 +109,7 @@ def read_document(
     return document
 
 @router.put("/documents/{document_id}", response_model=DocumentSchema, tags=["documents"])
-def update_document(
+async def update_document(
     *,
     request: Request,
     db: Session = Depends(get_db),
@@ -120,10 +138,27 @@ def update_document(
     db.add(document)
     db.commit()
     db.refresh(document)
+    
+    # Notify the user about the document update with full data
+    await manager.send_document_update(
+        str(current_user.id),
+        {
+            "type": "document_updated",
+            "data": {
+                "id": str(document.id),
+                "title": document.title,
+                "data": document.data,
+                "created_at": document.created_at.isoformat(),
+                "updated_at": document.updated_at.isoformat(),
+                "user_id": str(document.user_id)
+            }
+        }
+    )
+    
     return document
 
 @router.delete("/documents/{document_id}", response_model=DocumentSchema, tags=["documents"])
-def delete_document(
+async def delete_document(
     *,
     request: Request,
     db: Session = Depends(get_db),
@@ -143,6 +178,21 @@ def delete_document(
             detail="Document not found"
         )
     
+    document_info = {
+        "id": str(document.id),
+        "title": document.title
+    }
+    
     db.delete(document)
     db.commit()
+    
+    # Notify the user about the document deletion
+    await manager.send_document_update(
+        str(current_user.id),
+        {
+            "type": "document_deleted",
+            "data": document_info
+        }
+    )
+    
     return document

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartDoc System</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <!-- Toast notifications -->
+    <div id="toast-container"></div>
+
+    <!-- Main App View -->
+    <div id="app-view">
+        <!-- Header -->
+        <header>
+            <div class="container header-content">
+                <h1 class="app-title">SmartDoc</h1>
+                <div class="user-controls">
+                    <span id="user-email" class="user-email"></span>
+                    <div class="websocket-status-container">
+                        <button id="ws-status" class="ws-status disconnected">
+                            <span class="status-dot"></span> Disconnected
+                        </button>
+                    </div>
+                    <button id="logout-btn" class="btn btn-secondary">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container">
+            <div class="page-header">
+                <h2 class="section-title">Your Documents</h2>
+                <div class="toolbar">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="realtime-updates">
+                        <span>Get realtime updates</span>
+                    </label>
+                    <button id="ocr-btn" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <path d="M9 7v10M15 7v10M3 12h18"></path>
+                        </svg>
+                        OCR Scan
+                    </button>
+                    <button id="new-document-btn" class="btn btn-primary">New Document</button>
+                </div>
+            </div>
+
+            <!-- Documents List -->
+            <div class="documents-container">
+                <div class="table-responsive">
+                    <table class="documents-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Created</th>
+                                <th>Updated</th>
+                                <th class="actions-column">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documents-list">
+                            <!-- Documents will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="empty-state" class="empty-state hidden">
+                    <p>No documents found. Create your first document!</p>
+                </div>
+                <div id="loading-state" class="loading-state">
+                    <p>Loading documents...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-content login-modal-content">
+                <div class="modal-body">
+                    <h1 class="app-title login-title">SmartDoc</h1>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary login-btn">Log in</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Modal -->
+    <div id="document-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-content">
+                <form id="document-form">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="document-title">Title</label>
+                            <input type="text" id="document-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="document-content">Content</label>
+                            <textarea id="document-content" rows="6"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" id="save-document-btn" class="btn btn-primary">Save</button>
+                        <button type="button" id="close-modal-btn" class="btn btn-secondary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Document Modal -->
+    <div id="view-document-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="view-document-title" class="document-title"></h3>
+                </div>
+                <div class="modal-tabs">
+                    <button class="tab-btn active" data-tab="document">Document</button>
+                    <button class="tab-btn" data-tab="images">Images</button>
+                </div>
+                <div class="modal-body">
+                    <div class="tab-content active" data-tab="document">
+                        <div class="document-actions">
+                            <button id="copy-document-btn" class="btn btn-small">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                Copy Text
+                            </button>
+                        </div>
+                        <div id="view-document-content" class="document-content"></div>
+                    </div>
+                    <div class="tab-content" data-tab="images">
+                        <div id="document-images" class="document-images">
+                            <div class="image-slider-container">
+                                <div class="slider-wrapper">
+                                    <div class="image-slider" id="image-slider">
+                                        <!-- Slides will be loaded here -->
+                                    </div>
+                                    <button class="slider-nav prev-slide" id="prev-slide">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="15 18 9 12 15 6"></polyline>
+                                        </svg>
+                                    </button>
+                                    <button class="slider-nav next-slide" id="next-slide">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="9 18 15 12 9 6"></polyline>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="slider-pagination" id="slider-pagination">
+                                    <!-- Pagination dots will be loaded here -->
+                                </div>
+                                <div class="empty-images-message">No images available</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="edit-document-btn" class="btn btn-primary">Edit</button>
+                    <button type="button" id="close-view-modal-btn" class="btn btn-secondary">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="alert-container">
+                        <div class="alert-icon">
+                            <svg class="icon-warning" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div class="alert-content">
+                            <h3 class="alert-title">Delete Document</h3>
+                            <div class="alert-message">
+                                <p>Are you sure you want to delete this document? This action cannot be undone.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="confirm-delete-btn" class="btn btn-danger">Delete</button>
+                    <button type="button" id="cancel-delete-btn" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Document Notification Modal -->
+    <div id="document-notification-modal" class="hidden">
+        <div class="notification-title">New Document Received</div>
+        <div class="notification-content">
+            <p>A new document has been added: <strong id="notification-doc-title"></strong></p>
+        </div>
+        <div class="notification-actions">
+            <button id="view-notification-doc-btn" class="btn btn-primary">View Document</button>
+            <button id="close-notification-btn" class="btn btn-secondary">Dismiss</button>
+        </div>
+    </div>
+
+    <!-- OCR Modal -->
+    <div id="ocr-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="document-title">OCR Image Scanner</h3>
+                </div>
+                <div class="modal-tabs">
+                    <button class="tab-btn active" data-tab="upload">Upload Image</button>
+                    <button class="tab-btn" data-tab="url">Image URL</button>
+                </div>
+                <div class="modal-body">
+                    <div class="tab-content active" data-tab="upload">
+                        <div class="form-group">
+                            <label for="ocr-file">Select an image to scan</label>
+                            <div class="file-upload-container">
+                                <input type="file" id="ocr-file" accept="image/*" class="hidden">
+                                <div class="file-upload-area" id="file-upload-area">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                    </svg>
+                                    <p>Drop an image here or click to browse</p>
+                                </div>
+                                <div id="file-preview" class="file-preview hidden">
+                                    <img id="ocr-preview-image" src="" alt="Preview">
+                                    <button id="remove-file" class="btn btn-small">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button id="upload-ocr-btn" class="btn btn-primary" disabled>Scan Image</button>
+                        </div>
+                    </div>
+                    <div class="tab-content" data-tab="url">
+                        <div class="form-group">
+                            <label for="ocr-url">Enter image URL</label>
+                            <input type="url" id="ocr-url" placeholder="https://example.com/image.jpg">
+                        </div>
+                        <div class="form-actions">
+                            <button id="url-ocr-btn" class="btn btn-primary" disabled>Scan URL</button>
+                        </div>
+                    </div>
+                    <div id="ocr-result-container" class="ocr-result-container hidden">
+                        <div class="ocr-result-header">
+                            <h4>OCR Results</h4>
+                            <button id="copy-ocr-btn" class="btn btn-small">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                Copy Text
+                            </button>
+                        </div>
+                        <div id="ocr-result-text" class="ocr-result-text"></div>
+                        <div class="ocr-actions">
+                            <button id="create-document-from-ocr" class="btn btn-primary">Create Document</button>
+                        </div>
+                    </div>
+                    <div id="ocr-loading" class="ocr-loading hidden">
+                        <div class="spinner"></div>
+                        <p>Processing image...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="close-ocr-modal-btn" class="btn btn-secondary">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html> 
