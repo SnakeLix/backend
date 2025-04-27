@@ -4,6 +4,9 @@ from typing import Optional
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
+    # Environment
+    ENV: str = "development"
+    
     # API settings
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "FastAPI Backend"
@@ -30,10 +33,7 @@ class Settings(BaseSettings):
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
     
     class Config:
-        if "ENV" in os.environ:
-            env_file = f".env.{os.environ['ENV']}"
-        else:
-            env_file = ".env.development"
+        env_file = f".env.{os.environ.get('ENV', 'development')}"
         case_sensitive = True
 
 @lru_cache()

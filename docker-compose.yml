@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.3'
 
 services:
   api:
@@ -11,23 +11,25 @@ services:
       - db
     env_file:
       - .env.production
+    environment:
+      - ENV=production
     volumes:
       - ./:/app/
-    command: bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: bash -c "alembic upgrade head && python init_db.py && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     # For debugging, you can uncomment the next line to keep the container running without starting the app
     # command: tail -f /dev/null
 
   db:
-    image: postgres:14  # Changed from postgres:15 to postgres:14 which is more widely available
+    image: postgres:14
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     ports:
-      - "5432:5432"  # Expose PostgreSQL to host machine for debugging
+      - "5959:5432"  # Map host port 5959 to container port 5432
     env_file:
       - .env.production
     environment:
-      # Additional settings for better development experience
       - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_PORT=5432  # PostgreSQL always runs on 5432 inside the container
 
 volumes:
   postgres_data:
