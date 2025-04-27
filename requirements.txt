@@ -6,6 +6,7 @@ appdirs==1.4.4
 asttokens==3.0.0
 astunparse==1.6.3
 atomicwrites==1.4.0
+bcrypt==4.3.0
 certifi==2025.4.26
 charset-normalizer==3.4.1
 click==8.1.8
@@ -97,7 +98,6 @@ python-jose==3.3.0
 python-lsp-jsonrpc==1.1.2
 python-lsp-server==1.12.2
 python-multipart==0.0.6
-pywin32==309
 pyzmq==26.2.1
 requests==2.32.3
 rich==14.0.0
