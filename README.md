@@ -1,17 +1,33 @@
 # FastAPI Backend
 
-A FastAPI backend application with JWT authentication, PostgreSQL database, and Docker setup.
+**Tác giả: Đỗng Gia Sang, Trần Công Toàn**
 
-## Features
+Một ứng dụng backend FastAPI với xác thực JWT, cơ sở dữ liệu PostgreSQL và cấu hình Docker.
 
-- User authentication with JWT
-- Full CRUD operations for users and documents
-- PostgreSQL database with SQLAlchemy ORM
+## Tính năng
+
+- Xác thực người dùng bằng JWT
+- Đầy đủ CRUD cho người dùng và tài liệu
+- Cơ sở dữ liệu PostgreSQL với SQLAlchemy ORM
 - Alembic migrations
-- Docker and docker-compose for easy deployment
-- Password hashing for security
+- Docker và docker-compose để triển khai dễ dàng
+- Băm mật khẩu để bảo mật
 
-## Database Schema
+## Cài đặt nhanh
+
+1. Cài đặt các gói cần thiết:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Khởi động server phát triển:
+   ```bash
+   python dev_server.py
+   ```
+
+3. Có thể sử dụng ngrok để truy cập an toàn vào `/web`
+
+## Lược đồ cơ sở dữ liệu
 
 ```sql
 CREATE TABLE users (
@@ -33,81 +49,53 @@ CREATE TABLE documents (
 );
 ```
 
-## Getting Started
+## Các endpoint API
 
-### Prerequisites
+- **Xác thực**
+  - `POST /api/v1/auth/login` - Nhận JWT token
 
-- Docker and docker-compose
+- **Người dùng**
+  - `POST /api/v1/users` - Tạo người dùng mới
+  - `GET /api/v1/users/me` - Lấy thông tin người dùng hiện tại
+  - `PUT /api/v1/users/me` - Cập nhật người dùng hiện tại
+  - `GET /api/v1/users` - Liệt kê tất cả người dùng (cần xác thực)
 
-### Installation
+- **Tài liệu**
+  - `GET /api/v1/documents` - Liệt kê tài liệu của người dùng
+  - `POST /api/v1/documents` - Tạo tài liệu mới
+  - `GET /api/v1/documents/{document_id}` - Lấy tài liệu cụ thể
+  - `PUT /api/v1/documents/{document_id}` - Cập nhật tài liệu
+  - `DELETE /api/v1/documents/{document_id}` - Xóa tài liệu
 
-1. Clone the repository
-2. Copy the `.env.example` file to `.env` and modify as needed
-   ```bash
-   cp .env.example .env
-   ```
-3. Start the containers with docker-compose
-   ```bash
-   docker-compose up -d
-   ```
-4. The API will be available at http://localhost:8000
-5. API documentation is available at http://localhost:8000/docs
+## Phát triển
 
-## API Endpoints
-
-- **Authentication**
-
-  - `POST /api/v1/auth/login` - Get JWT token
-
-- **Users**
-
-  - `POST /api/v1/users` - Create new user
-  - `GET /api/v1/users/me` - Get current user
-  - `PUT /api/v1/users/me` - Update current user
-  - `GET /api/v1/users` - List all users (requires authentication)
-
-- **Documents**
-  - `GET /api/v1/documents` - List user's documents
-  - `POST /api/v1/documents` - Create new document
-  - `GET /api/v1/documents/{document_id}` - Get specific document
-  - `PUT /api/v1/documents/{document_id}` - Update document
-  - `DELETE /api/v1/documents/{document_id}` - Delete document
-
-## Development
-
-To work on the application locally:
-
-1. Create a virtual environment
-
+1. Tạo môi trường ảo:
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   source venv/bin/activate  # Trên Windows: venv\Scripts\activate
    ```
 
-2. Install dependencies
-
+2. Cài đặt phụ thuộc:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Set up environment variables (modify DATABASE_URL to point to your local PostgreSQL)
+3. Thiết lập biến môi trường (sửa DATABASE_URL cho PostgreSQL cục bộ)
 
-4. Run the application
-
+4. Chạy ứng dụng:
    ```bash
    uvicorn app.main:app --reload
    ```
 
-5. Run database migrations
+5. Chạy migrate database:
    ```bash
    alembic upgrade head
    ```
 
-## Creating Migrations
+## Tạo migration mới
 
-To create a new migration after changing models:
-
+Sau khi thay đổi models, tạo migration mới:
 ```bash
-alembic revision --autogenerate -m "Description of changes"
+alembic revision --autogenerate -m "Mô tả thay đổi"
 alembic upgrade head
 ```
